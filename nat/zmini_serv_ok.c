@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 /******************************************************************************
- * CLIENT STRUCTURE AND GLOBAL VARIABLES
+ * CLIENT STRUCTURE AND GLOBAL VARIABLES (NOT GIVEN)
  ******************************************************************************/
 
 // Structure to represent a connected client
@@ -34,7 +34,7 @@ fd_set write_set;   // Set of file descriptors to check for writing
 fd_set active_set;  // Master set of all active file descriptors
 
 /******************************************************************************
- * ERROR HANDLING
+ * ERROR HANDLING (NOT GIVEN)
  ******************************************************************************/
 
 // Print error message to stderr and exit with specified code
@@ -46,7 +46,7 @@ void	err(char *msg, int exit_code) {
 }
 
 /******************************************************************************
- * BROADCAST MESSAGING
+ * BROADCAST MESSAGING (NOT GIVEN)
  ******************************************************************************/
 
 // Send a message to all connected clients except one (typically the sender)
@@ -58,7 +58,7 @@ void	send_all(int except, char *msg) {
 }
 
 /******************************************************************************
- * MESSAGE PARSING
+ * MESSAGE PARSING (GIVEN)
  ******************************************************************************/
 
 // Extract one complete message (ending with '\n') from the buffer
@@ -100,7 +100,7 @@ int extract_message(char **buf, char **msg)
 }
 
 /******************************************************************************
- * STRING CONCATENATION
+ * STRING CONCATENATION  (GIVEN)
  ******************************************************************************/
 
 // Concatenate two strings, allocating new memory
@@ -135,46 +135,66 @@ char *str_join(char *buf, char *add)
 }
 
 /******************************************************************************
- * MAIN SERVER FUNCTION
+ * MAIN SERVER FUNCTION //G = Given //X Given but not needed (thus commented) 
  ******************************************************************************/
 
 int main(int ac, char **av) { 
-	int sockfd, connfd;
-	struct sockaddr_in servaddr;
+	int sockfd, connfd;//G
+	struct sockaddr_in servaddr;//G
 	
-	// Check command line arguments (need port number)
+	/***********************************************************************
+	* NEW TO ADD: Check command line arguments (need port number)
+	***********************************************************************/
 	if (ac != 2) {
 		err("Wrong number of arguments\n", 1);
 	}
+	/***********************************************************************
+	* END OF NEW BLOCK
+	***********************************************************************/
 
 	/**************************************************************************
 	 * SOCKET CREATION AND SETUP
 	 **************************************************************************/
 	
 	// Create TCP socket
-	sockfd = socket(AF_INET, SOCK_STREAM, 0); 
-	if (sockfd == -1) { 
-		err(NULL, 1);
+	sockfd = socket(AF_INET, SOCK_STREAM, 0); //G
+	if (sockfd == -1) { //G
+		//printf("socket creation failed...\n");//X
+		//exit(0);//X
+		err(NULL, 1);//G
 	}
 	
 	// Initialize max_fd with server socket
-	max_fd = sockfd;
+	max_fd = sockfd;//G
 	
 	// Zero out the server address structure
-	bzero(&servaddr, sizeof(servaddr)); 
+	bzero(&servaddr, sizeof(servaddr)); //G
 
 	// Configure server address
-	servaddr.sin_family = AF_INET; 
-	servaddr.sin_addr.s_addr = htonl(2130706433); // 127.0.0.1 (localhost)
+	servaddr.sin_family = AF_INET; //G
+	servaddr.sin_addr.s_addr = htonl(2130706433); // 127.0.0.1 (localhost)//G
+	//Xservaddr.sin_port = htons(8081); 
+	/***********************************************************************
+	* MODIFIED FROM ORIGINAL MAIN
+	************************************************************************/
 	servaddr.sin_port = htons(atoi(av[1]));       // Port from command line
-  
+  /***********************************************************************
+	* END OF NEW BLOCK
+	***********************************************************************/
+
 	// Bind socket to address and port
-	if ((bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr))) != 0) { 
+	if ((bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr))) != 0) { //G
+		//printf("socket bind failed...\n");//X
+		//exit(0);//X
 		err(NULL, 1);
 	}
+	//else //G
+		//printf("Socket successfully binded..\n");//G
 	
 	// Start listening for connections (queue up to 10)
-	if (listen(sockfd, 10) != 0) {
+	if (listen(sockfd, 10) != 0) {//G
+		//printf("cannot listen\n");//X 
+		//exit(0);//X
 		err(NULL, 1);
 	}
 	
@@ -294,3 +314,16 @@ int main(int ac, char **av) {
 		}
 	}
 }
+/*******************************************************************
+* COMMENT THE REMAINING GIVEN MAIN (numbers = num line in original)*
+********************************************************************
+86     len = sizeof(cli);
+87     connfd = accept(sockfd, (struct sockaddr *)&cli, &len);
+88     if (connfd < 0) {
+89         printf("server acccept failed...\n");
+90         exit(0);
+91     }
+92     else
+93         printf("server acccept the client...\n");
+94 }
+
