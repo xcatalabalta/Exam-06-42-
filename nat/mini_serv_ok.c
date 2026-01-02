@@ -125,15 +125,19 @@ int main(int ac, char **av) {
 	FD_ZERO(&active_set); 
 	FD_SET(sockfd, &active_set); 
 	bzero(clients, sizeof(clients));
-	while (1) {
+	while (1) 
+	{
 		read_set = write_set = active_set;
 		if(select(max_fd +1, &read_set, &write_set, NULL, NULL) < 0 )
 			continue;
-		for (int fd = 0; fd <= max_fd; fd++) {
-			if(!FD_ISSET(fd, &read_set)) {
+		for (int fd = 0; fd <= max_fd; fd++) 
+		{
+			if(!FD_ISSET(fd, &read_set)) 
+			{
 				continue;
 			}
-			if (fd == sockfd) {
+			if (fd == sockfd) 
+			{
 				connfd= accept(sockfd, NULL, NULL);
 				if (connfd < 0) continue;
 				if (connfd >max_fd) max_fd = connfd;
@@ -145,10 +149,12 @@ int main(int ac, char **av) {
 				sprintf(msg, "server: client %d just arrived\n", clients[connfd].id);
 				send_all(connfd,msg);
 			}
-			else {
+			else 
+			{
 				char buf[1024];
 				int r = recv(fd, buf, sizeof(buf) - 1, 0);
-				if (r <= 0) {
+				if (r <= 0) 
+				{
 					char msg [100];
 					sprintf(msg, "server: client %d just left\n", clients[fd].id);
 					send_all(fd,msg);
@@ -157,13 +163,15 @@ int main(int ac, char **av) {
 					free(clients[fd].buf);
 					clients[fd].fd = 0;
 				}
-				else {
+				else 
+				{
 					buf[r] = 0;
 					clients[fd].buf = str_join(clients[fd].buf, buf);
 					if(!clients[fd].buf)
 						err(NULL,1);
 					char *msg;
-					while(extract_message(&clients[fd].buf, &msg) ==1) {
+					while(extract_message(&clients[fd].buf, &msg) == 1) 
+					{
 						char prefix[50];
 						sprintf(prefix, "client %d: ", clients[fd].id);
 						char *full = malloc(strlen(prefix)+strlen(msg) +1);

@@ -4,6 +4,7 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+// Next 3 libraries are not given in main.c
 #include <sys/select.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,7 +46,7 @@ void err(char *msg, int exit_code) {
 }
 
 /******************************************************************************
- * BROADCAST MESSAGING
+ * BROADCAST MESSAGING	
  ******************************************************************************/
 
 // Send a message to all connected clients except one (typically the sender)
@@ -56,7 +57,7 @@ void send_all(t_server *srv, int except, char *msg) {
 }
 
 /******************************************************************************
- * MESSAGE PARSING
+ * MESSAGE PARSING (GIVEN)
  ******************************************************************************/
 
 // Extract one complete message (ending with '\n') from the buffer
@@ -91,7 +92,7 @@ int extract_message(char **buf, char **msg)
 }
 
 /******************************************************************************
- * STRING CONCATENATION
+ * STRING CONCATENATION (GIVEN)
  ******************************************************************************/
 
 // Concatenate two strings, allocating new memory
@@ -119,7 +120,7 @@ char *str_join(char *buf, char *add)
 }
 
 /******************************************************************************
- * SERVER INITIALIZATION
+ * SERVER INITIALIZATION (NOT GIVEN)
  ******************************************************************************/
 
 // Initialize server state structure
@@ -132,7 +133,7 @@ void init_server(t_server *srv, int sockfd) {
 }
 
 /******************************************************************************
- * CLIENT CONNECTION HANDLING
+ * CLIENT CONNECTION HANDLING (NOT GIVEN)
  ******************************************************************************/
 
 // Handle new client connection

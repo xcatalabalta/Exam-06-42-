@@ -173,10 +173,10 @@ int main(int ac, char **av) {
 	// Configure server address
 	servaddr.sin_family = AF_INET; //G
 	servaddr.sin_addr.s_addr = htonl(2130706433); // 127.0.0.1 (localhost)//G
-	//Xservaddr.sin_port = htons(8081); 
 	/***********************************************************************
 	* MODIFIED FROM ORIGINAL MAIN
 	************************************************************************/
+	//Xservaddr.sin_port = htons(8081); 
 	servaddr.sin_port = htons(atoi(av[1]));       // Port from command line
   /***********************************************************************
 	* END OF NEW BLOCK
@@ -188,8 +188,8 @@ int main(int ac, char **av) {
 		//exit(0);//X
 		err(NULL, 1);
 	}
-	//else //G
-		//printf("Socket successfully binded..\n");//G
+	//else //X
+		//printf("Socket successfully binded..\n");//X
 	
 	// Start listening for connections (queue up to 10)
 	if (listen(sockfd, 10) != 0) {//G
