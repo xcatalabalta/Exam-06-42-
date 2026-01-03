@@ -4,10 +4,30 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-//new 3 libs
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/select.h>
+
+/* JUST TO PLAY */
+int ft_same(char *str1, char *str2)
+{
+	if (strlen(str1) != strlen(str2))
+	{
+		return (0);
+	}
+	for (int i = 0; i < (int)(strlen(str1)); i++)
+	{
+		if (str1[i] != str2[i])
+			return (0);
+	}
+	return (1);
+}
+
+int ft_sendto(char *msg)
+{
+	return (msg[0] == '#' && msg[1] == 'S' && msg[2] == ' ');
+}
 
 /* CONNECTED CLIENT STRUCTURE */
 typedef struct s_client{
@@ -43,6 +63,25 @@ void send_all(char *msg, t_server *srv, int except)
 		if (srv->clients[i].fd > 0 && i != except)
 		{
 			send(srv->clients[i].fd, msg, strlen(msg), 0);
+		}
+	}
+}
+
+/* FOR FUN */
+void send_to(char *msg1, t_server *srv, int to, char *msg2, int skip)
+{
+	for(int i = 0; i <= srv->max_fd; i++)
+	{
+		if (srv->clients[i].fd > 0 && srv->clients[i].id == to)
+		{
+			//write(srv->clients[i].fd, msg1, strlen(msg1));
+			send(srv->clients[i].fd, msg1, strlen(msg1), 0);
+			for (int j = 0; j <= skip; j++)
+			{
+				msg2++;
+			}
+			send(srv->clients[i].fd, msg2, strlen(msg2), 0);
+			break;
 		}
 	}
 }
@@ -105,71 +144,46 @@ int main(int argc, char **argv)
 	struct sockaddr_in	servaddr;//, cli; 
 	t_server			serv = {0}; //new =>  put to zero what possible
 
-	//1 verification of args
 	if (argc != 2)
 	{
 		err("Wrong number of arguments\n", 1);
 	}
 
-	//socket create and verification 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0); //given
 	if (sockfd == -1) 
 	{ 
-		//printf("socket creation failed...\n");
-		//exit(0);
 		err(NULL, 1);
 	}
-	/*
-	else
-		printf("Socket successfully created..\n"); 
-	*/
 	bzero(&servaddr, sizeof(servaddr)); 
 
-	// assign IP, PORT 
 	servaddr.sin_family = AF_INET; 
 	servaddr.sin_addr.s_addr = htonl(2130706433); //127.0.0.1
 	servaddr.sin_port = htons(atoi(argv[1]));//htons(8081); 
   
-	// Binding newly created socket to given IP and verification 
 	if ((bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr))) != 0) 
 	{ 
-		//printf("socket bind failed...\n"); 
-		//exit(0); 
 		err(NULL, 1);
 	}
-	/*
-	else
-		printf("Socket successfully binded..\n");
-	*/
 	if (listen(sockfd, 10) != 0) 
 	{
-		//printf("cannot listen\n"); 
-		//exit(0); 
 		err(NULL, 1);
 	}
 /* HERE STARTS THE NEW FUNCTIONS */
-	//1 INIT SERVER
-	//init_server(&serv, sockfd);
 	serv.max_fd = sockfd;
 	FD_SET(sockfd, &serv.active_set);
-	//2 MAIN LOOP
 	while (1)
 	{
-		//2.1 Copy active set to read & write sets
 		serv.read_set = serv.write_set = serv.active_set;
-		//2.2 Wait for activity
 		if (select(serv.max_fd + 1, &serv.read_set, &serv.write_set, NULL, NULL) < 0)
 		{
 			continue;
 		}
-		//2.3 Check each file descriptor for activity
 		for (int fd = 0; fd <= serv.max_fd; fd++)
 		{
 			if (!FD_ISSET(fd, &serv.read_set))
 			{
 				continue;
 			}
-			//2.3.1 New client
 			if (fd == sockfd)
 			{
 				connfd = accept(sockfd, NULL, NULL);
@@ -181,12 +195,10 @@ int main(int argc, char **argv)
 				{
 					serv.max_fd = connfd;
 				}
-				// 2.3.1.1 Initialize new client
 				serv.clients[connfd].fd = connfd;//new fd
-				serv.clients[connfd].id = serv.next_id++; //assigned new id (and increment next id in server
+				serv.clients[connfd].id = serv.next_id++; //assign new id (and increment next id)
 				serv.clients[connfd].buf = NULL;
 				FD_SET(connfd, &serv.active_set);// Add new socket in active
-				//2.3.1.2 Create message and broadcast it
 				char msg[100]; //new variable
 				sprintf(msg, "server: client %d just arrived\n", serv.clients[connfd].id);
 				send_all(msg, &serv, connfd);
@@ -219,34 +231,59 @@ int main(int argc, char **argv)
 					char *msg;
 					while(extract_message(&serv.clients[fd].buf, &msg) > 0)
 					{
-						char  prefix[50];
-						sprintf(prefix, "client %d: ", serv.clients[fd].id);
-						char *output = malloc(strlen(prefix) + strlen(msg) + 1);
-						if (!output)
+						if (ft_same(msg, "#QUIT\n"))
 						{
-							err(NULL, 1);
+							char bye[100];
+							sprintf(bye, "server: client %d has left\n", serv.clients[fd].id);
+							send_all(bye, &serv, fd);
+							FD_CLR(fd, &serv.active_set);
+							close(fd);
+							if (serv.clients[fd].buf)
+								free(serv.clients[fd].buf);
+							serv.clients[fd].buf = NULL;
+							serv.clients[fd].fd = 0;
+							free(msg);
+							break;
+
 						}
-						output[0] = 0;
-						//strcat(output, prefix);
-						//strcat(output, msg);
-						sprintf(output, "%s%s", prefix, msg);
-						send_all(output, &serv, fd);
-						free(output);
-						free(msg);
+						if (ft_sendto(msg))
+						{
+							int  	destiny;
+							int 	count = 3;
+							char	*num = malloc(5);
+							while (msg[count] != ' ' && count < 7)
+							{
+								num[count - 3] = msg[count];
+								count++;
+							}
+							num[count - 3] = 0;
+							destiny = atoi(num);
+							free(num);
+							char  prefix[50];
+							sprintf(prefix, "Message from client %d: ", serv.clients[fd].id);
+							send_to(prefix, &serv, destiny, msg, count);
+							free(msg);
+						}
+						else
+						{
+							char  prefix[50];
+							sprintf(prefix, "client %d: ", serv.clients[fd].id);
+							char *output = malloc(strlen(prefix) + strlen(msg) + 1);
+							if (!output)
+							{
+								err(NULL, 1);
+							}
+							output[0] = 0;
+							sprintf(output, "%s%s", prefix, msg);
+							send_all(output, &serv, fd);
+							free(output);
+							free(msg);
+						}
 					}
+
 				}
 			}
 		}
 	}
 
-/*	
-	len = sizeof(cli);
-	connfd = accept(sockfd, (struct sockaddr *)&cli, &len);
-	if (connfd < 0) { 
-        printf("server acccept failed...\n"); 
-        exit(0); 
-    } 
-    else
-        printf("server acccept the client...\n");
-*/
 }
