@@ -200,7 +200,7 @@ int main(int argc, char **argv)
 				serv.clients[connfd].buf = NULL;
 				FD_SET(connfd, &serv.active_set);// Add new socket in active
 				char msg[100]; //new variable
-				sprintf(msg, "server: client %d just arrived\n", serv.clients[connfd].id);
+				sprintf(msg, "server: client %d (fd %d - %d) just arrived\n", serv.clients[connfd].id, serv.clients[connfd].fd, connfd);
 				send_all(msg, &serv, connfd);
 			}
 			//2.3.2 Existing client

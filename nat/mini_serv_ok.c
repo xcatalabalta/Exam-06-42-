@@ -81,11 +81,16 @@ char *str_join(char *buf, char *add)
 	return (newbuf);
 }
 
-
+/*
+// Original :
+int main() {
+// Change to accept arguments
+*/
 int main(int ac, char **av) { 
-	int sockfd, connfd; //
+	int sockfd, connfd; //len //len is provided but not necessary
 	struct sockaddr_in servaddr; // 
 	/**********/
+	// Check invalid number of arguments
 	if (ac != 2) {
 		err("Wrong number of arguments\n", 1);
 	}
