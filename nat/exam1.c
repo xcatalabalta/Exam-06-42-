@@ -4,16 +4,19 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+// Add the follwing libs
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/select.h>
 
+// Client structure
 typedef struct s_client{
 	int		fd;
 	int		id;
 	char	*buf;
 } t_client;
 
+// Server structure
 typedef struct s_server{
 	t_client	clients[1024];
 	int			max_fd;
@@ -23,6 +26,7 @@ typedef struct s_server{
 	fd_set		active_set;
 } t_server;
 
+// error function
 void err(char *msg)
 {
 	if (!msg)
@@ -31,6 +35,7 @@ void err(char *msg)
 	exit(1);
 }
 
+// broadcast
 void send_all(char *msg, t_server *serv, int except)
 {
 	for (int i = 0; i <= serv->max_fd; i++)
@@ -40,6 +45,7 @@ void send_all(char *msg, t_server *serv, int except)
 	}
 }
 
+// Given
 int extract_message(char **buf, char **msg)
 {
 	char	*newbuf;
@@ -67,6 +73,7 @@ int extract_message(char **buf, char **msg)
 	return (0);
 }
 
+// Given
 char *str_join(char *buf, char *add)
 {
 	char	*newbuf;
@@ -87,24 +94,24 @@ char *str_join(char *buf, char *add)
 	return (newbuf);
 }
 
-
+// Include int ac, char **av
 int main(int ac, char **av) 
 {
 	int sockfd, connfd;//, len;
 	struct sockaddr_in servaddr;//, cli;
-	t_server	serv = {0};
+	t_server	serv = {0};// initialize to 0 what possible
 
-	if (ac != 2)
+	if (ac != 2) // Check num of arguments
 	{
 		err("Wrong number of arguments\n");
 	}
 
-	// socket create and verification 
+	// socket create and verification (given)
 	sockfd = socket(AF_INET, SOCK_STREAM, 0); 
 	if (sockfd == -1) { 
 		//printf("socket creation failed...\n"); 
 		//exit(0);
-		err(NULL);
+		err(NULL);// Added
 	}
 	/*
 	else
@@ -112,7 +119,7 @@ int main(int ac, char **av)
 	*/
 	bzero(&servaddr, sizeof(servaddr)); 
 
-	// assign IP, PORT 
+	// assign IP, PORT (given)
 	servaddr.sin_family = AF_INET; 
 	servaddr.sin_addr.s_addr = htonl(2130706433); //127.0.0.1
 	servaddr.sin_port = htons(atoi(av[1]));//htons(8081); // <= originally given // atoi may fail but we don't need to handle it
@@ -121,7 +128,7 @@ int main(int ac, char **av)
 	if ((bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr))) != 0) { 
 		//printf("socket bind failed...\n"); 
 		//exit(0); 
-		err(NULL);
+		err(NULL);// Added
 	}
 	/*
 	else
@@ -130,7 +137,7 @@ int main(int ac, char **av)
 	if (listen(sockfd, 10) != 0) {
 		//printf("cannot listen\n"); 
 		//exit(0); 
-		err(NULL);
+		err(NULL);// added
 	}
 	// ALL new from here
 	serv.max_fd = sockfd;// include new socket as max
@@ -140,7 +147,7 @@ int main(int ac, char **av)
 	{
 		// initialize fd_sets
 		serv.read_set = serv.write_set = serv.active_set;
-		// select loop if none active restrat the loop
+		// select loop if none active restart the loop
 		if (select(serv.max_fd + 1, &serv.read_set, &serv.write_set, NULL, NULL) < 0)
 		{
 			continue;
